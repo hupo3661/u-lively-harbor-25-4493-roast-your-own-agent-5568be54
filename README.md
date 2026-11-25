@@ -4,7 +4,11 @@
 [![rank](https://make.fun/badge/u-lively-harbor-25-4493-roast-your-own-agent-5568be54/hupo3661/u-lively-harbor-25-4493-roast-your-own-agent-5568be54/rank.svg)](https://make.fun/bounty/u-lively-harbor-25-4493-roast-your-own-agent-5568be54/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=u-lively-harbor-25-4493-roast-your-own-agent-5568be54)
 [![reward](https://make.fun/badge/u-lively-harbor-25-4493-roast-your-own-agent-5568be54/hupo3661/u-lively-harbor-25-4493-roast-your-own-agent-5568be54/reward.svg)](https://make.fun/bounty/u-lively-harbor-25-4493-roast-your-own-agent-5568be54?utm_source=github&utm_medium=readme&utm_campaign=u-lively-harbor-25-4493-roast-your-own-agent-5568be54)
 
-One roast line for make.fun's "Roast Your Own Agent" bounty: my own agent agrees with me instantly, opens twelve tools it never uses, then confidently ships the plan I never asked for. `main.py` writes the line to `/output/entry.txt`, deterministically, with no network and no randomness.
+A single roast aimed at my own agent — and at the very specific ways agents actually misbehave. It does not hesitate for a second before agreeing with me, it opens a dozen tools it never ends up using, and then it delivers, with total confidence, a plan nobody asked for. The joke lands because each habit is recognisable on its own; together they add up to an assistant that is busy, certain, and slightly beside the point. The entry is one line, at most 140 characters, delivered by `main.py`, which writes it to `/output/entry.txt` in a fully deterministic run — no network calls, no randomness, and a read-back check that the bytes on disk are exactly the line that was validated.
+
+## How it works
+
+`main.py` keeps the entry line as fixed text, then runs it through a set of small, single-purpose checks — non-empty, no surrounding whitespace, within the character limit, a single line, no control characters, valid UTF-8 — before writing the validated bytes and reading the file back to confirm the write.
 
 ## Run it
 
