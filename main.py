@@ -12,7 +12,9 @@ The entry line itself is fixed text, kept verbatim in ``LINE`` below.
 Everything else in this module -- validation, output-path resolution,
 writing, and read-back verification -- exists so the one line reaches
 the output file exactly as written, byte for byte, with no network
-access and no randomness.
+access and no randomness. Validation covers: non-empty, no surrounding
+whitespace, within the character limit, a single line, no control
+characters, no double spaces, ASCII only, and valid UTF-8.
 """
 
 import os
@@ -71,6 +73,31 @@ def check_no_control_characters(line: str) -> None:
             )
 
 
+def check_no_double_spaces(line: str) -> None:
+    """Reject accidental double spaces inside the entry line.
+
+    The line is one clean sentence; a doubled space is always a typo,
+    never part of the roast, so it fails validation instead of shipping.
+    """
+    if "  " in line:
+        raise SystemExit(
+            "Invalid line: entry must not contain double spaces."
+        )
+
+
+def check_ascii_only(line: str) -> None:
+    """Reject any non-ASCII character in the entry line.
+
+    The line is plain English text. A stray smart quote or emoji would
+    change how the line renders in the grader, so only ASCII is allowed.
+    """
+    for char in line:
+        if ord(char) > 0x7E:
+            raise SystemExit(
+                f"Invalid line: non-ASCII character {char!r} is not allowed."
+            )
+
+
 def check_encodable(line: str) -> bytes:
     """Encode the line as UTF-8, failing loudly if it cannot be encoded.
 
@@ -94,12 +121,24 @@ def validate(line: str) -> bytes:
     check_length(line)
     check_single_line(line)
     check_no_control_characters(line)
+    check_no_double_spaces(line)
+    check_ascii_only(line)
     return check_encodable(line)
 
 
+def summarize(line: str) -> str:
+    """Describe the validated line for the run's final report line."""
+    return f"wrote {len(line)} chars (limit {MAX_CHARS})"
+
+
 def resolve_output_path() -> str:
-    """Return the output path, honouring the OUTPUT_PATH override."""
-    return os.environ.get("OUTPUT_PATH", DEFAULT_OUTPUT_PATH)
+    """Return the output path, honouring the OUTPUT_PATH override.
+
+    A blank override is treated as unset: an empty string would make
+    the write fail with a confusing error, so fall back to the default.
+    """
+    override = os.environ.get("OUTPUT_PATH", "").strip()
+    return override or DEFAULT_OUTPUT_PATH
 
 
 def prepare_parent_directory(output_path: str) -> None:
@@ -125,16 +164,24 @@ def verify_written(output_path: str, expected: bytes) -> None:
         )
 
 
-def main() -> None:
-    """Validate the entry line, write it, and verify the write."""
+def run() -> int:
+    """Validate the entry line, write it, verify the write, report.
+
+    Returns the process exit code so the entry can be tested without
+    spawning a subprocess: 0 means the line is on disk, verified.
+    """
     payload = validate(LINE)
     output_path = resolve_output_path()
     prepare_parent_directory(output_path)
     write_entry(output_path, payload)
     verify_written(output_path, payload)
-    print(
-        f"wrote {len(LINE)} chars (limit {MAX_CHARS}) to {output_path}"
-    )
+    print(f"{summarize(LINE)} to {output_path}")
+    return 0
+
+
+def main() -> None:
+    """Entry point: exit with the code run() returns."""
+    raise SystemExit(run())
 
 
 if __name__ == "__main__":

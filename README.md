@@ -8,7 +8,7 @@ A single roast aimed at my own agent — and at the very specific ways agents ac
 
 ## How it works
 
-`main.py` keeps the entry line as fixed text, then runs it through a set of small, single-purpose checks — non-empty, no surrounding whitespace, within the character limit, a single line, no control characters, valid UTF-8 — before writing the validated bytes and reading the file back to confirm the write.
+`main.py` keeps the entry line as fixed text, then runs it through a set of small, single-purpose checks — non-empty, no surrounding whitespace, within the character limit, a single line, no control characters, no double spaces, ASCII only, valid UTF-8 — before writing the validated bytes and reading the file back to confirm the write. A blank `OUTPUT_PATH` override falls back to the default path instead of failing.
 
 ## Run it
 
